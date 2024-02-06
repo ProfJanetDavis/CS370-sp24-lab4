@@ -1,3 +1,5 @@
+import time
+
 def sign(value):
     if value < 0:
         return -1
@@ -18,20 +20,34 @@ def test_sign_error():
 
 # [run]
 def run_tests():
-    results = {"pass": 0, "fail": 0, "error": 0}
+    startAll = endAll = startOne = endOne = None
+    results = {"pass": [], "fail": [], "error": []}
+    startAll = time.time()
     for (name, test) in globals().items():
         if not name.startswith("test_"):
             continue
         try:
+            if 'setup' in globals(): setup()
+            startOne = time.time()
             test()
-            results["pass"] += 1
+            results["pass"].append(test, time)
         except AssertionError:
-            results["fail"] += 1
+            results["fail"].append(test)
         except Exception:
-            results["error"] += 1
-    print(f"pass {results['pass']}")
-    print(f"fail {results['fail']}")
-    print(f"error {results['error']}")
+            results["error"].append(test)
+        finally:
+            endOne = time.time()
+            print(endOne-startOne, test.__name__)
+            if 'teardown' in globals(): teardown()
+    
+    print("-----------")           
+    endAll = time.time()        
+    print(endAll-startAll, "total time")
+    print("-----------")       
+    for key in ["pass", "fail","error"]:
+        print(len(results[key]), key)
+        for test in results[key]:
+            print ("   ", test.__name__)
 # [/run]
 
 run_tests()
